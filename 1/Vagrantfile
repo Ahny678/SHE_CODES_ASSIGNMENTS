@@ -1,0 +1,151 @@
+Vagrant.configure("2") do |config|
+  # Base box
+  config.vm.box = "ubuntu/focal64"
+
+  # Private network
+  config.vm.network "private_network", ip: "192.168.56.40"
+
+  # VirtualBox provider settings
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "1024"
+  end
+
+  # Provisioning script
+  config.vm.provision "shell", inline: <<-SHELL
+
+    # Step 1: Update system
+    sudo apt update
+
+    # Step 2: Install Nginx
+    sudo apt install nginx -y
+
+    # Step 3: Create web root
+    sudo mkdir -p /var/www/fairyland
+    sudo chown -R $USER:$USER /var/www/fairyland
+
+    # Step 4: Create HTML page
+    cat > /var/www/fairyland/index.html <<EOF
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fairly Land</title>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        background: linear-gradient(135deg, #ffb6e6, #ffc0f3, #ffd6f9);
+      }
+      .container {
+        text-align: center;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 40px 60px;
+        border-radius: 30px;
+        box-shadow: 0 0 40px rgba(255, 105, 180, 0.7);
+        z-index: 2;
+      }
+      h1 {
+        color: #ff4da6;
+        font-size: 3em;
+        margin: 0;
+        text-shadow: 0 0 15px white, 0 0 25px #ff99cc;
+      }
+      p { color: #cc3399; }
+      .glitter { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+      .sparkle {
+        position: absolute; width: 6px; height: 6px;
+        background: white; border-radius: 50%;
+        animation: twinkle 2s infinite ease-in-out;
+      }
+      @keyframes twinkle { 0%,100% { opacity:0; transform:scale(0.5); } 50% { opacity:1; transform:scale(1.5); } }
+      .heart {
+        position: absolute; color:#ff66b2; font-size:20px;
+        animation: floatUp 6s linear infinite;
+      }
+      @keyframes floatUp { from { transform:translateY(100vh); opacity:1; } to { transform:translateY(-10vh); opacity:0; } }
+      .cloud {
+        position:absolute; background:#fff; border-radius:50px; opacity:0.7;
+        animation: moveClouds 60s linear infinite;
+      }
+      @keyframes moveClouds { from { transform:translateX(-200px); } to { transform:translateX(110vw); } }
+    </style>
+  </head>
+  <body>
+    <!-- Background Music -->
+    <audio autoplay loop>
+      <source src="music.mp3" type="audio/mpeg" />
+    </audio>
+
+    <div class="glitter" id="glitter"></div>
+    <div class="container">
+      <h1>Welcome to Fairly Land! ✨</h1>
+      <p>Where everything sparkles and dreams shine bright 💖</p>
+    </div>
+
+    <script>
+      for (let i = 0; i < 60; i++) {
+        let sparkle = document.createElement("div");
+        sparkle.className = "sparkle";
+        sparkle.style.top = Math.random() * 100 + "vh";
+        sparkle.style.left = Math.random() * 100 + "vw";
+        sparkle.style.animationDelay = Math.random() * 2 + "s";
+        document.getElementById("glitter").appendChild(sparkle);
+      }
+
+      setInterval(() => {
+        let heart = document.createElement("div");
+        heart.className = "heart";
+        heart.innerHTML = "💖";
+        heart.style.left = Math.random() * 100 + "vw";
+        heart.style.fontSize = 15 + Math.random() * 25 + "px";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 6000);
+      }, 800);
+
+      for (let i = 0; i < 3; i++) {
+        let cloud = document.createElement("div");
+        cloud.className = "cloud";
+        cloud.style.width = 120 + Math.random() * 80 + "px";
+        cloud.style.height = "60px";
+        cloud.style.top = 10 + i * 20 + "vh";
+        cloud.style.animationDuration = 40 + Math.random() * 40 + "s";
+        document.body.appendChild(cloud);
+      }
+    </script>
+  </body>
+</html>
+EOF
+
+    # Step 5: Create Nginx server block (corrected)
+    cat > /etc/nginx/sites-available/fairyland <<EOF
+server {
+    listen 80;
+    server_name 192.168.56.40;
+
+    root /var/www/fairyland;
+    index index.html;
+}
+EOF
+
+    # Step 6: Enable site safely
+    sudo ln -sf /etc/nginx/sites-available/fairyland /etc/nginx/sites-enabled/fairyland
+    sudo rm -f /etc/nginx/sites-enabled/default
+
+    # Step 7: Test config and restart Nginx
+    sudo nginx -t
+    sudo systemctl restart nginx
+
+    # Step 8: Check if Nginx is running
+    if systemctl is-active --quiet nginx; then
+      echo "✅ Nginx is running successfully!"
+    else
+      echo "❌ Nginx failed to start."
+    fi
+
+  SHELL
+end
