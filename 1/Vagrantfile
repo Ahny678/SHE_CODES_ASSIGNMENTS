@@ -121,7 +121,7 @@ Vagrant.configure("2") do |config|
 </html>
 EOF
 
-    # Step 5: Create Nginx server block (corrected)
+    # Step 5: Create Nginx server block
     cat > /etc/nginx/sites-available/fairyland <<EOF
 server {
     listen 80;
@@ -132,7 +132,7 @@ server {
 }
 EOF
 
-    # Step 6: Enable site safely
+    # Step 6: Enable site 
     sudo ln -sf /etc/nginx/sites-available/fairyland /etc/nginx/sites-enabled/fairyland
     sudo rm -f /etc/nginx/sites-enabled/default
 
