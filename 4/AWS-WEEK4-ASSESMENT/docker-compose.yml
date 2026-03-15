@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.1
+    container_name: wordpress-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - /mnt/mysql-data:/var/lib/mysql # Persist MySQL data on EBS
+    networks:
+      - wp-network
+
+  wordpress:
+    image: wordpress:6.5-php8.2-apache
+    container_name: wordpress-app
+    restart: unless-stopped
+    ports:
+      - "80:80" # Expose WordPress on port 80
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - wp-network
+    volumes:
+      - /opt/wordpress:/var/www/html # persist WordPress files
+
+networks:
+  wp-network:
+    driver: bridge
