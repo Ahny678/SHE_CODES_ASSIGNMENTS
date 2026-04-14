@@ -1,0 +1,23 @@
+---
+- name: Set up the pay-api environment
+  hosts: webservers
+  become: yes
+
+  roles:
+    - pay-api
+
+- name: Configure database server
+  hosts: dbservers
+  become: yes
+
+  tasks:
+    - name: Install MariaDB server
+      ansible.builtin.dnf:
+        name: mariadb105-server
+        state: present
+
+    - name: Start and enable MariaDB
+      ansible.builtin.service:
+        name: mariadb
+        state: started
+        enabled: yes
