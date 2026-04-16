@@ -1,0 +1,46 @@
+# docker-compose.yml — SCA DevOps Bootcamp Monitoring Stack
+services:
+  pay-api: # Our application (Section 9)
+    build: ./pay-api
+    ports: ["5000:5000"]
+
+  traffic-generator: # Simulates user traffic
+    image: alpine/curl:latest
+    entrypoint: ["/bin/sh", "/scripts/generate-traffic.sh"]
+    volumes: ["./traffic-generator:/scripts:ro"]
+    depends_on: [pay-api]
+
+  node-exporter: # System metrics (Section 8)
+    image: prom/node-exporter:latest
+    ports: ["9100:9100"]
+
+  prometheus: # Metrics database (Section 7)
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+  grafana: # Dashboards (Section 10)
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    environment: [GF_SECURITY_ADMIN_PASSWORD=admin]
+    volumes: [grafana-data:/var/lib/grafana]
+
+  loki: # Log storage (Section 11)
+    image: grafana/loki:latest
+    ports: ["3100:3100"]
+    volumes:
+      - ./config/loki-config.yml:/etc/loki/local-config.yaml:ro
+
+  alloy: # Log collector (Section 12)
+    image: grafana/alloy:latest
+    volumes:
+      - ./config/alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  prometheus-data: # Persists metrics
+  grafana-data: # Persists dashboards
+  loki-data: # Persists logs
+

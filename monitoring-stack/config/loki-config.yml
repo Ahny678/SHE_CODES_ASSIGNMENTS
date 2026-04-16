@@ -1,0 +1,26 @@
+auth_enabled: false           # No auth for lab environment
+ 
+server:
+  http_listen_port: 3100      # Loki listens here
+ 
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:               # Local storage (use S3 in production)
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1       # Single instance, no replication
+  ring:
+    kvstore:
+      store: inmemory         # In-memory ring (use consul/etcd in prod)
+ 
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: tsdb             # Modern time-series index
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h           # Rotate index daily
+
