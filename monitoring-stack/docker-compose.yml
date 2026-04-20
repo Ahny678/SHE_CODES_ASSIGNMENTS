@@ -1,4 +1,5 @@
 # docker-compose.yml — SCA DevOps Bootcamp Monitoring Stack
+# docker-compose.yml — SCA DevOps Bootcamp Monitoring Stack
 services:
   pay-api: # Our application (Section 9)
     build: ./pay-api
@@ -43,4 +44,3 @@ volumes:
   prometheus-data: # Persists metrics
   grafana-data: # Persists dashboards
   loki-data: # Persists logs
-

@@ -22,3 +22,12 @@ scrape_configs:
         labels:
           app: "pay-api-app"
 
+
+
+    # Adding a new target — following the scrape_config reference
+  - job_name: "notification-service"
+    static_configs:
+      - targets: ["notification-svc:8080"]
+        labels:
+          app: "notification-svc"
+
